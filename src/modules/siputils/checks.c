@@ -584,10 +584,10 @@ static int is_number(const char *p)
 int tel2sip(struct sip_msg* _msg, char* _uri, char* _hostpart, char* _res)
 {
         str uri, hostpart, tel_uri, sip_uri;
-        char *at;
-        int i, j, in_tel_parameters = 0;
-        pv_spec_t *res;
-        pv_value_t res_val;
+        char *at=NULL;
+        int i=0, j=0, in_tel_parameters = 0;
+        pv_spec_t *res=NULL;
+        pv_value_t res_val={0};
 
         /* get parameters */
         if (get_str_fparam(&uri, _msg, (fparam_t*)_uri) < 0) {

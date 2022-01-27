@@ -318,7 +318,7 @@ int print_uri_junit_tests(char *hdrstart,int hdrlen,unsigned char *payload,int p
 {
    int i=4,k=0,m=0;/*1*pointer+1*len+2*flags*/
    unsigned char uriidx=0,flags1=0,flags2=0,urilen;
-   char *ch_uriptr,*aux,*aux2,*aux3,*uritype=NULL,*secure=NULL;
+   char *ch_uriptr=NULL,*aux=NULL,*aux2=NULL,*aux3=NULL,*uritype=NULL,*secure=NULL;
 
    uriidx=payload[0];
    if(uriidx>hdrlen){
