@@ -793,6 +793,7 @@ int do_action(struct run_act_ctx* h, struct action* a, struct sip_msg* msg)
 					&& ((uri.type==TEL_URI_T) || (uri.type==TELS_URI_T)
 						|| ((uri.user_param_val.len==5) && (memcmp(uri.user_param_val.s, "phone", 5)==0)))
 				) {
+					LM_ERR("--------------------checking user param value <%s>----------------------, \n", uri.user_param_val.s);
 					ret=1;
 					break;
 				}
