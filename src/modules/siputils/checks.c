@@ -589,6 +589,7 @@ static int is_number(const char *p)
 int tel2sip(struct sip_msg* _msg, char* _uri, char* _hostpart, char* _res)
 {
 	LM_ERR("-----------------------sj:inside tel2sip function--------------\n");
+	LM_ERR("-----------------------sj:uri %s and host %s received--------------\n",_uri, _hostpart);
         str uri, hostpart, tel_uri, sip_uri;
         char *at=NULL;
         int i=0, j=0, in_tel_parameters = 0;
@@ -600,12 +601,12 @@ int tel2sip(struct sip_msg* _msg, char* _uri, char* _hostpart, char* _res)
                 LM_ERR("failed to get uri value\n");
 			return -1;
         }
-	LM_ERR("\n------------sj:uri string %s--------\n",uri);
+	LM_ERR("\n------------sj:uri string %s and length %d--------\n",uri.s,uri.len);
         if (get_str_fparam(&hostpart, _msg, (fparam_t*)_hostpart) < 0) {
                 LM_ERR("failed to get hostpart value\n");
 			return -1;
         }
-	LM_ERR("\n------------sj:hostpart string %s--------\n",hostpart);
+	LM_ERR("\n------------sj:hostpart string %s and length %d--------\n",hostpart.s, hostpart.len);
         res = (pv_spec_t *)_res;
 
         /* check if anything needs to be done */
@@ -636,7 +637,7 @@ int tel2sip(struct sip_msg* _msg, char* _uri, char* _hostpart, char* _res)
         }
         tel_uri.s[j] = '\0';
         tel_uri.len = strlen(tel_uri.s);
-
+	LM_ERR("\n------------sj:tel_uri string %s and tel_uri length %d--------\n",tel_uri.s,tel_uri.len);
         /*** Start Code to sort tel: params *******/
         tel_param_t params[MAX_TEL_PARAMS];
         char *tmp_ptr = tel_uri.s + 4; // skip tel:
