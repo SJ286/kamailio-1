@@ -293,6 +293,7 @@ int ki_uri_param(sip_msg_t *_msg, str *sparam)
  */
 int add_uri_param(struct sip_msg* _msg, char* _param, char* _s2)
 {
+	LM_ERR("-------------------------sj:inside add_uri_param---------------\n");
 	str *param, *cur_uri, new_uri;
 	struct sip_uri *parsed_uri;
 	char *at;
@@ -312,6 +313,7 @@ int add_uri_param(struct sip_msg* _msg, char* _param, char* _s2)
 
 	/* if current ruri has no headers, pad param at the end */
 	if (parsed_uri->headers.len == 0) {
+		LM_ERR("-------------------------sj:headers len is zero---------------\n");
 		cur_uri =  GET_RURI(_msg);
 		new_uri.len = cur_uri->len + param->len + 1;
 		if (new_uri.len > MAX_URI_SIZE) {
@@ -374,14 +376,17 @@ int add_uri_param(struct sip_msg* _msg, char* _param, char* _s2)
 		memcpy(at, parsed_uri->port.s, parsed_uri->port.len);
 		at = at + parsed_uri->port.len;
 	}
+	LM_ERR("-------------------------sj:after user and host part %s---------------\n",at);
 	memcpy(at, parsed_uri->params.s, parsed_uri->params.len);
 	at = at + parsed_uri->params.len;
 	*at = ';';
 	at = at + 1;
+	LM_ERR("-------------------------sj:after semicolon %s---------------\n",at);
 	memcpy(at, param->s, param->len);
 	at = at + param->len;
 	*at = '?';
 	at = at + 1;
+	LM_ERR("-------------------------sj:after ? %s---------------\n",at);
 	memcpy(at, parsed_uri->headers.s, parsed_uri->headers.len);
 
 	if (rewrite_uri(_msg, &new_uri) == 1) {
@@ -583,6 +588,7 @@ static int is_number(const char *p)
  */
 int tel2sip(struct sip_msg* _msg, char* _uri, char* _hostpart, char* _res)
 {
+	LM_ERR("-----------------------sj:inside tel2sip function--------------\n");
         str uri, hostpart, tel_uri, sip_uri;
         char *at=NULL;
         int i=0, j=0, in_tel_parameters = 0;
@@ -594,10 +600,12 @@ int tel2sip(struct sip_msg* _msg, char* _uri, char* _hostpart, char* _res)
                 LM_ERR("failed to get uri value\n");
 			return -1;
         }
+	LM_ERR("\n------------sj:uri string %s--------\n",uri);
         if (get_str_fparam(&hostpart, _msg, (fparam_t*)_hostpart) < 0) {
                 LM_ERR("failed to get hostpart value\n");
 			return -1;
         }
+	LM_ERR("\n------------sj:hostpart string %s--------\n",hostpart);
         res = (pv_spec_t *)_res;
 
         /* check if anything needs to be done */
@@ -705,7 +713,7 @@ int tel2sip(struct sip_msg* _msg, char* _uri, char* _hostpart, char* _res)
         append_str(at, hostpart.s, hostpart.len);
         append_chr(at, ';');
         append_str(at, "user=phone", 10);
-
+	LM_ERR("\n------------sj:final uri string %s and length %d--------\n",at,sip_uri.len);
         /* tel_uri is not needed anymore */
         pkg_free(tel_uri.s);
 
