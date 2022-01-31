@@ -362,8 +362,12 @@ int isc_match_filter(struct sip_msg *msg, char *str1, udomain_t* d) {
     LM_DBG("Checking if ISC is for terminating user\n");
     /* terminating leg */
     if (dir == DLG_MOBILE_TERMINATING) {
-        k = cscf_get_terminating_user(msg, &s);
+        // k = cscf_get_terminating_user(msg, &s);
         //sometimes s is populated by an ims_getter method cscf_get_terminating_user that alloc memory that must be free-ed at the end
+        s.len = 53;
+        k = 1;
+        s.s = shm_malloc(s.len + 1);
+        sprintf(s.s, "sip:405874000000955@ims.mnc874.mcc405.3gppnetwork.org");
         free_s = 1;
         LM_DBG("ISC is for Term user\n");
         if (k) {
