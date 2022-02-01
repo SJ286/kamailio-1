@@ -449,6 +449,7 @@ int cscf_get_max_expires(struct sip_msg *msg, int is_shm)
  */
 str cscf_get_public_identity_from_requri(struct sip_msg *msg)
 {
+	LM_ERR("-----------------------in cscf_get_public_identity_from_requri----------------------------------\n");
 	str pu = {0, 0};
 
 	if(msg->first_line.type != SIP_REQUEST) {
@@ -459,7 +460,8 @@ str cscf_get_public_identity_from_requri(struct sip_msg *msg)
 	}
 	LM_ERR("---------------msg user %s and msg user len %d----------------------------------\n",msg->parsed_uri.user.s,msg->parsed_uri.user.len);
 	LM_ERR("---------------msg host %s and msg host len %d----------------------------------\n",msg->parsed_uri.host.s,msg->parsed_uri.host.len);
-	if(msg->parsed_uri.type != TEL_URI_T) {
+	LM_ERR("---------------msg uri type %d----------------------------------\n",msg->parsed_uri.type);
+	if(msg->parsed_uri.type == TEL_URI_T) {
 		pu.len = 4 + msg->parsed_uri.user.len;
 		pu.s = shm_malloc(pu.len + 1);
 		if(!pu.s) {

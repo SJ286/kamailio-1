@@ -373,11 +373,13 @@ int parse_uri(char* buf, int len, struct sip_uri* uri)
 	scheme|=0x20202020;
 	if (scheme==SIP_SCH){
 		uri->type=SIP_URI_T;
+		LM_ERR("-----------------------scheme sip---------------------------------\n");
 	}else if(scheme==SIPS_SCH){
 		if(buf[4]==':'){ p++; uri->type=SIPS_URI_T;}
 		else goto error_bad_uri;
 	}else if (scheme==TEL_SCH){
 		uri->type=TEL_URI_T;
+		LM_ERR("-----------------------scheme tel---------------------------------\n");
 	}else if (scheme==URN_SCH){
 		uri->type=URN_URI_T;
 	}else goto error_bad_uri;
@@ -1164,17 +1166,20 @@ int parse_uri(char* buf, int len, struct sip_uri* uri)
 	switch(uri->type){
 		case SIPS_URI_T:
 		case SIP_URI_T:
+			LM_ERR("-----------------------in switch case SIP_URI_T----------------------------------\n");
 			/* save the original sip: URI parameters in sip_params */
 			uri->sip_params=uri->params;
 			if ((phone2tel) &&
 					(uri->user_param_val.len == 5) &&
 					(strncmp(uri->user_param_val.s, "phone", 5) == 0)
 				) {
+				LM_ERR("-----------------------in switch case SIP_URI_T, changing uri type to tel----------------------------------\n");
 				uri->type = TEL_URI_T;
 				uri->flags |= URI_SIP_USER_PHONE;
 				/* move params from user into uri->params */
 				p=q_memchr(uri->user.s, ';', uri->user.len);
 				if (p){
+					LM_ERR("---------------move user into uri->params-----------------------\n");
 					/* NOTE:
 					 * specialized uri params (user, maddr, etc.) still hold
 					 * the values from the sip-uri envelope
@@ -1184,10 +1189,12 @@ int parse_uri(char* buf, int len, struct sip_uri* uri)
 					uri->params.len=uri->user.s+uri->user.len-uri->params.s;
 					uri->user.len=p-uri->user.s;
 				} else {
+					LM_ERR("---------------dont move user into uri->params-----------------------\n");
 					uri->params.s=0;
 					uri->params.len=0;
 				}
 			} else {
+				LM_ERR("-----------------------in switch case SIP_URI_T, not changing uri type to tel, setting user normalized----------------------------------\n");
 				uri->flags&=~URI_USER_NORMALIZE;
 			}
 			break;
@@ -1313,14 +1320,18 @@ static inline int _parse_ruri(str *uri,
 
 int parse_sip_msg_uri(struct sip_msg* msg)
 {
+	LM_ERR("-----------------------in parse_sip_msg_uri----------------------------------\n");
 	char* tmp;
 	int tmp_len;
+	LM_ERR("-----------------------parsed uri ok = %d----------------------------------\n",msg->parsed_uri_ok);
 	if (msg->parsed_uri_ok) return 1;
 
 	if (msg->new_uri.s){
+		LM_ERR("---------------new msg user %s and new msg user len %d----------------------------------\n",msg->new_uri.s,msg->new_uri.len);
 		tmp=msg->new_uri.s;
 		tmp_len=msg->new_uri.len;
 	}else{
+		LM_ERR("---------------first line user %s and first line msg user len %d----------------------------------\n",msg->first_line.u.request.uri.s,msg->first_line.u.request.uri.len);
 		tmp=msg->first_line.u.request.uri.s;
 		tmp_len=msg->first_line.u.request.uri.len;
 	}
@@ -1329,6 +1340,7 @@ int parse_sip_msg_uri(struct sip_msg* msg)
 		msg->parsed_uri_ok=0;
 		return -1;
 	}
+	LM_ERR("-----------------------out parse_sip_msg_uri----------------------------------\n");
 	msg->parsed_uri_ok=1;
 	return 1;
 }

@@ -362,7 +362,9 @@ int isc_match_filter(struct sip_msg *msg, char *str1, udomain_t* d) {
     LM_DBG("Checking if ISC is for terminating user\n");
     /* terminating leg */
     if (dir == DLG_MOBILE_TERMINATING) {
+        LM_ERR("-----------------------in terminating leg----------------------------------\n");
         k = cscf_get_terminating_user(msg, &s);
+        LM_ERR("-----------------------after getting terminating user , string %s and len %d----------------------------------\n",s.s,s.len);
         //sometimes s is populated by an ims_getter method cscf_get_terminating_user that alloc memory that must be free-ed at the end
         // s.len = 53;
         // k = 1;
