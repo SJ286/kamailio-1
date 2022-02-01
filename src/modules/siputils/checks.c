@@ -590,7 +590,7 @@ int tel2sip(struct sip_msg* _msg, char* _uri, char* _hostpart, char* _res)
 {
 	LM_ERR("-----------------------sj:inside tel2sip function--------------\n");
 	LM_ERR("-----------------------sj:uri %s and host %s received--------------\n",_uri, _hostpart);
-        str uri, hostpart, tel_uri, sip_uri;
+        str uri = {0}, hostpart  = {0}, tel_uri  = {0} , sip_uri = {0};
         char *at=NULL;
         int i=0, j=0, in_tel_parameters = 0;
         pv_spec_t *res=NULL;
