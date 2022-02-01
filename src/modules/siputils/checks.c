@@ -586,150 +586,233 @@ static int is_number(const char *p)
  * deletes the "phone-context" parameter if it is a domain, and, takes visual
  * separators from the "phone-context" parameter if it is a telephone number.
  */
+// int tel2sip(struct sip_msg* _msg, char* _uri, char* _hostpart, char* _res)
+// {
+// 	LM_ERR("-----------------------sj:inside tel2sip function--------------\n");
+// 	LM_ERR("-----------------------sj:uri %s and host %s received--------------\n",_uri, _hostpart);
+//         str uri = {0}, hostpart  = {0}, tel_uri  = {0} , sip_uri = {0};
+//         char *at=NULL;
+//         int i=0, j=0, in_tel_parameters = 0;
+//         pv_spec_t *res=NULL;
+//         pv_value_t res_val={0};
+
+//         /* get parameters */
+//         if (get_str_fparam(&uri, _msg, (fparam_t*)_uri) < 0) {
+//                 LM_ERR("failed to get uri value\n");
+// 			return -1;
+//         }
+// 	LM_ERR("\n------------sj:uri string %s and length %d--------\n",uri.s,uri.len);
+//         if (get_str_fparam(&hostpart, _msg, (fparam_t*)_hostpart) < 0) {
+//                 LM_ERR("failed to get hostpart value\n");
+// 			return -1;
+//         }
+// 	LM_ERR("\n------------sj:hostpart string %s and length %d--------\n",hostpart.s, hostpart.len);
+//         res = (pv_spec_t *)_res;
+
+//         /* check if anything needs to be done */
+//         if (uri.len < 4) return 1;
+//         if (strncasecmp(uri.s, "tel:", 4) != 0) return 1;
+
+//         /* reserve memory for clean tel uri */
+//         tel_uri.s = pkg_malloc(uri.len+1);
+//         if (tel_uri.s == 0) {
+//                 LM_ERR("no more pkg memory\n");
+//                 return -1;
+//         }
+
+//         /* Remove visual separators before converting to SIP URI. Don't remove
+//          * visual separators in TEL URI parameters (after the first ";") */
+//         for (i=0, j=0; i < uri.len; i++) {
+//                 if (in_tel_parameters == 0) {
+//                         if (uri.s[i] == ';')
+//                                 in_tel_parameters = 1;
+//                 }
+//                 if (in_tel_parameters == 0) {
+//                         if ((uri.s[i] != '-') && (uri.s[i] != '.') &&
+//                                         (uri.s[i] != '(') && (uri.s[i] != ')'))
+//                                 tel_uri.s[j++] = tolower(uri.s[i]);
+//                 } else {
+//                         tel_uri.s[j++] = tolower(uri.s[i]);
+//                 }
+//         }
+//         tel_uri.s[j] = '\0';
+//         tel_uri.len = strlen(tel_uri.s);
+// 	LM_ERR("\n------------sj:tel_uri string %s and tel_uri length %d--------\n",tel_uri.s,tel_uri.len);
+//         /*** Start Code to sort tel: params *******/
+//         tel_param_t params[MAX_TEL_PARAMS];
+//         char *tmp_ptr = tel_uri.s + 4; // skip tel:
+
+//         int n_tel_params = 0;
+//         for (int i=0; i < MAX_TEL_PARAMS; i++)
+//         {
+//            tmp_ptr = strchr(tmp_ptr, ';');
+//            if (tmp_ptr == NULL)
+//            {
+//              break;
+//            }
+//            *tmp_ptr = '\0';
+//            tmp_ptr++;
+//            n_tel_params++;
+//            params[i].name = tmp_ptr;
+//         }
+//         for (int i=0; i < n_tel_params; i++)
+//         {
+//           tmp_ptr = strchr(params[i].name, '=');
+//           if (tmp_ptr == NULL)
+//           {
+//             params[i].value = "";
+//           }
+//           else
+//           {
+//              *tmp_ptr = '\0';
+//              tmp_ptr++;
+//              params[i].value = tmp_ptr;
+//           }
+//           if ((0 == strcasecmp(params[i].name, "phone-context")) && (is_number(params[i].value)))
+//           {
+//             remove_visual_separators_from_phone(params[i].value);
+//           }
+           
+//         }
+//         if (n_tel_params > 1)
+//         {
+//           qsort(&params[0], n_tel_params, sizeof(tel_param_t), compare_tel_options);
+//         }
+//         /*** End Code to sort tel: params ******/
+
+//         /* reserve memory for resulting sip uri */
+//         sip_uri.len = 4 + tel_uri.len - 4 + 1 + hostpart.len + 1 + 10;
+//         sip_uri.s = pkg_malloc(sip_uri.len+1);
+//         if (sip_uri.s == 0) {
+//                 LM_ERR("no more pkg memory\n");
+//                 pkg_free(tel_uri.s);
+//                 return -1;
+//         }
+
+//         /* create resulting sip uri */
+//         at = sip_uri.s;
+//         append_str(at, "sip:", 4);
+//         /** Original code tel: parameters NOT sorted 
+//         append_str(at, tel_uri.s + 4, tel_uri.len - 4);
+//         *****/
+//         /***** Start Changed Code for sorted tel: parameters ****/
+//         append_str(at, tel_uri.s + 4, strlen(tel_uri.s + 4)); /* This string was terminated after the number */
+//         /** Now we need to insert sorted tel: parameters **/
+//         for (int i=0; i < n_tel_params; i++)
+//         {
+//           /* If the phone context is a domain, it has already been extracted and is in the "host part" */
+//           if ((0 != strcasecmp(params[i].name, "phone-context")) || (is_number(params[i].value)))
+//           {
+//             append_chr(at, ';');
+//             append_str(at, params[i].name, strlen(params[i].name));
+//             append_chr(at, '=');
+//             append_str(at, params[i].value, strlen(params[i].value));
+//           }
+//         }
+//         /***** End Changed Code for sort tel: parameters ****/
+//         append_chr(at, '@');
+//         append_str(at, hostpart.s, hostpart.len);
+//         append_chr(at, ';');
+//         append_str(at, "user=phone", 10);
+// 	LM_ERR("\n------------sj:final uri string %s and length %d--------\n",at,sip_uri.len);
+//         /* tel_uri is not needed anymore */
+//         pkg_free(tel_uri.s);
+
+//         /* set result pv value and write sip uri to result pv */
+//         res_val.rs = sip_uri;
+//         res_val.flags = PV_VAL_STR;
+//         if (res->setf(_msg, &res->pvp, (int)EQ_T, &res_val) != 0) {
+//                 LM_ERR("failed to set result pvar\n");
+//                 pkg_free(sip_uri.s);
+//                 return -1;
+//         }
+
+//         /* free allocated pkg memory and return */
+//         pkg_free(sip_uri.s);
+//         return 1;
+// }
+
 int tel2sip(struct sip_msg* _msg, char* _uri, char* _hostpart, char* _res)
 {
-	LM_ERR("-----------------------sj:inside tel2sip function--------------\n");
-	LM_ERR("-----------------------sj:uri %s and host %s received--------------\n",_uri, _hostpart);
-        str uri = {0}, hostpart  = {0}, tel_uri  = {0} , sip_uri = {0};
-        char *at=NULL;
-        int i=0, j=0, in_tel_parameters = 0;
-        pv_spec_t *res=NULL;
-        pv_value_t res_val={0};
+	str uri, hostpart, tel_uri, sip_uri;
+	char *at;
+	int i, j, in_tel_parameters = 0;
+	pv_spec_t *res;
+	pv_value_t res_val;
 
-        /* get parameters */
-        if (get_str_fparam(&uri, _msg, (fparam_t*)_uri) < 0) {
-                LM_ERR("failed to get uri value\n");
-			return -1;
-        }
-	LM_ERR("\n------------sj:uri string %s and length %d--------\n",uri.s,uri.len);
-        if (get_str_fparam(&hostpart, _msg, (fparam_t*)_hostpart) < 0) {
-                LM_ERR("failed to get hostpart value\n");
-			return -1;
-        }
-	LM_ERR("\n------------sj:hostpart string %s and length %d--------\n",hostpart.s, hostpart.len);
-        res = (pv_spec_t *)_res;
+	/* get parameters */
+	if (get_str_fparam(&uri, _msg, (fparam_t*)_uri) < 0) {
+		LM_ERR("failed to get uri value\n");
+		return -1;
+	}
+	if (get_str_fparam(&hostpart, _msg, (fparam_t*)_hostpart) < 0) {
+		LM_ERR("failed to get hostpart value\n");
+		return -1;
+	}
+	res = (pv_spec_t *)_res;
 
-        /* check if anything needs to be done */
-        if (uri.len < 4) return 1;
-        if (strncasecmp(uri.s, "tel:", 4) != 0) return 1;
+	/* check if anything needs to be done */
+	if (uri.len < 4) return 2;
+	if (strncasecmp(uri.s, "tel:", 4) != 0) return 2;
 
-        /* reserve memory for clean tel uri */
-        tel_uri.s = pkg_malloc(uri.len+1);
-        if (tel_uri.s == 0) {
-                LM_ERR("no more pkg memory\n");
-                return -1;
-        }
+	/* reserve memory for clean tel uri */
+	tel_uri.s = pkg_malloc(uri.len+1);
+	if (tel_uri.s == 0) {
+		LM_ERR("no more pkg memory\n");
+		return -1;
+	}
 
-        /* Remove visual separators before converting to SIP URI. Don't remove
-         * visual separators in TEL URI parameters (after the first ";") */
-        for (i=0, j=0; i < uri.len; i++) {
-                if (in_tel_parameters == 0) {
-                        if (uri.s[i] == ';')
-                                in_tel_parameters = 1;
-                }
-                if (in_tel_parameters == 0) {
-                        if ((uri.s[i] != '-') && (uri.s[i] != '.') &&
-                                        (uri.s[i] != '(') && (uri.s[i] != ')'))
-                                tel_uri.s[j++] = tolower(uri.s[i]);
-                } else {
-                        tel_uri.s[j++] = tolower(uri.s[i]);
-                }
-        }
-        tel_uri.s[j] = '\0';
-        tel_uri.len = strlen(tel_uri.s);
-	LM_ERR("\n------------sj:tel_uri string %s and tel_uri length %d--------\n",tel_uri.s,tel_uri.len);
-        /*** Start Code to sort tel: params *******/
-        tel_param_t params[MAX_TEL_PARAMS];
-        char *tmp_ptr = tel_uri.s + 4; // skip tel:
+	/* Remove visual separators before converting to SIP URI. Don't remove
+	 * visual separators in TEL URI parameters (after the first ";") */
+	for (i=0, j=0; i < uri.len; i++) {
+		if (in_tel_parameters == 0) {
+			if (uri.s[i] == ';')
+				in_tel_parameters = 1;
+		}
+		if (in_tel_parameters == 0) {
+			if ((uri.s[i] != '-') && (uri.s[i] != '.') &&
+					(uri.s[i] != '(') && (uri.s[i] != ')'))
+				tel_uri.s[j++] = tolower(uri.s[i]);
+		} else {
+			tel_uri.s[j++] = tolower(uri.s[i]);
+		}
+	}
+	tel_uri.s[j] = '\0';
+	tel_uri.len = strlen(tel_uri.s);
 
-        int n_tel_params = 0;
-        for (int i=0; i < MAX_TEL_PARAMS; i++)
-        {
-           tmp_ptr = strchr(tmp_ptr, ';');
-           if (tmp_ptr == NULL)
-           {
-             break;
-           }
-           *tmp_ptr = '\0';
-           tmp_ptr++;
-           n_tel_params++;
-           params[i].name = tmp_ptr;
-        }
-        for (int i=0; i < n_tel_params; i++)
-        {
-          tmp_ptr = strchr(params[i].name, '=');
-          if (tmp_ptr == NULL)
-          {
-            params[i].value = "";
-          }
-          else
-          {
-             *tmp_ptr = '\0';
-             tmp_ptr++;
-             params[i].value = tmp_ptr;
-          }
-          if ((0 == strcasecmp(params[i].name, "phone-context")) && (is_number(params[i].value)))
-          {
-            remove_visual_separators_from_phone(params[i].value);
-          }
-           
-        }
-        if (n_tel_params > 1)
-        {
-          qsort(&params[0], n_tel_params, sizeof(tel_param_t), compare_tel_options);
-        }
-        /*** End Code to sort tel: params ******/
+	/* reserve memory for resulting sip uri */
+	sip_uri.len = 4 + tel_uri.len - 4 + 1 + hostpart.len + 1 + 10;
+	sip_uri.s = pkg_malloc(sip_uri.len+1);
+	if (sip_uri.s == 0) {
+		LM_ERR("no more pkg memory\n");
+		pkg_free(tel_uri.s);
+		return -1;
+	}
 
-        /* reserve memory for resulting sip uri */
-        sip_uri.len = 4 + tel_uri.len - 4 + 1 + hostpart.len + 1 + 10;
-        sip_uri.s = pkg_malloc(sip_uri.len+1);
-        if (sip_uri.s == 0) {
-                LM_ERR("no more pkg memory\n");
-                pkg_free(tel_uri.s);
-                return -1;
-        }
+	/* create resulting sip uri */
+	at = sip_uri.s;
+	append_str(at, "sip:", 4);
+	append_str(at, tel_uri.s + 4, tel_uri.len - 4);
+	append_chr(at, '@');
+	append_str(at, hostpart.s, hostpart.len);
+	append_chr(at, ';');
+	append_str(at, "user=phone", 10);
 
-        /* create resulting sip uri */
-        at = sip_uri.s;
-        append_str(at, "sip:", 4);
-        /** Original code tel: parameters NOT sorted 
-        append_str(at, tel_uri.s + 4, tel_uri.len - 4);
-        *****/
-        /***** Start Changed Code for sorted tel: parameters ****/
-        append_str(at, tel_uri.s + 4, strlen(tel_uri.s + 4)); /* This string was terminated after the number */
-        /** Now we need to insert sorted tel: parameters **/
-        for (int i=0; i < n_tel_params; i++)
-        {
-          /* If the phone context is a domain, it has already been extracted and is in the "host part" */
-          if ((0 != strcasecmp(params[i].name, "phone-context")) || (is_number(params[i].value)))
-          {
-            append_chr(at, ';');
-            append_str(at, params[i].name, strlen(params[i].name));
-            append_chr(at, '=');
-            append_str(at, params[i].value, strlen(params[i].value));
-          }
-        }
-        /***** End Changed Code for sort tel: parameters ****/
-        append_chr(at, '@');
-        append_str(at, hostpart.s, hostpart.len);
-        append_chr(at, ';');
-        append_str(at, "user=phone", 10);
-	LM_ERR("\n------------sj:final uri string %s and length %d--------\n",at,sip_uri.len);
-        /* tel_uri is not needed anymore */
-        pkg_free(tel_uri.s);
+	/* tel_uri is not needed anymore */
+	pkg_free(tel_uri.s);
 
-        /* set result pv value and write sip uri to result pv */
-        res_val.rs = sip_uri;
-        res_val.flags = PV_VAL_STR;
-        if (res->setf(_msg, &res->pvp, (int)EQ_T, &res_val) != 0) {
-                LM_ERR("failed to set result pvar\n");
-                pkg_free(sip_uri.s);
-                return -1;
-        }
+	/* set result pv value and write sip uri to result pv */
+	res_val.rs = sip_uri;
+	res_val.flags = PV_VAL_STR;
+	if (res->setf(_msg, &res->pvp, (int)EQ_T, &res_val) != 0) {
+		LM_ERR("failed to set result pvar\n");
+		pkg_free(sip_uri.s);
+		return -1;
+	}
 
-        /* free allocated pkg memory and return */
-        pkg_free(sip_uri.s);
-        return 1;
+	/* free allocated pkg memory and return */
+	pkg_free(sip_uri.s);
+	return 1;
 }
 
 /*
