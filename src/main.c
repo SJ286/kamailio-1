@@ -354,7 +354,7 @@ int config_check = 0;
 /* check if reply first via host==us */
 int check_via =  0;
 /* translate user=phone URIs to TEL URIs */
-int phone2tel = 1;
+int phone2tel = 0;
 /* debugging level for timer debugging */
 int timerlog = L_WARN;
 /* should replies include extensive warnings? by default no,
